@@ -1,0 +1,1438 @@
+Coverage Report by file with details
+
+=================================================================================
+=== File: agent.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           13        10         3      76.9
+
+================================Statement Details================================
+
+Statement Coverage for file agent.sv --
+
+    1                                                class mem_agent extends uvm_agent;
+    2               1                    ***0***         `uvm_component_utils(mem_agent)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    virtual mem_interface mem_intf;
+    4                                                    mem_sequencer   mem_seqr;
+    5                                                    mem_driver      mem_drv;
+    6                                                    mem_monitor     mem_mon;
+    7                                                
+    8                                                    function new(string name = "mem_agent", uvm_component parent = null);
+    9               1                          1             super.new(name, parent);
+    10                                                   endfunction
+    11                                               
+    12                                                   function void build_phase(uvm_phase phase);
+    13              1                          1             super.build_phase(phase);
+    14              1                          1             mem_seqr = mem_sequencer::type_id::create("mem_seqr", this);
+    15              1                          1             mem_drv = mem_driver::type_id::create("mem_drv", this);
+    16              1                          1             mem_mon = mem_monitor::type_id::create("mem_mon", this);
+    17                                               
+    18                                                       assert(uvm_config_db#(virtual mem_interface)::get(this, "", "vif", mem_intf))
+    19                                                       else
+    20                                                           `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_env class")
+    21                                               
+    22              1                          1             uvm_config_db#(virtual mem_interface)::set(this, "mem_drv", "vif", mem_intf);
+    23              1                          1             uvm_config_db#(virtual mem_interface)::set(this, "mem_mon", "vif", mem_intf);
+    24                                                   endfunction
+    25                                               
+    26                                                   function void connect_phase (uvm_phase phase);
+    27              1                          1             super.connect_phase(phase);
+    28                                                       // Connect the sequence item port in the driver to the sequence item export in the sequencer
+    29              1                          1             mem_drv.seq_item_port.connect(mem_seqr.seq_item_export);
+    30                                                   endfunction
+    31                                               
+    32                                                   task run_phase(uvm_phase phase);
+    33              1                          1             super.run_phase(phase);
+    34                                                   endtask
+    35                                               endclass;
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         2         0         2       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file agent.sv --
+
+------------------------------------IF Branch------------------------------------
+    20                                   ***0***     Count coming in to IF
+    20              1                    ***0***                 `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_env class")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File agent.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: driver.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           15        12         3      80.0
+
+================================Statement Details================================
+
+Statement Coverage for file driver.sv --
+
+    1                                                class mem_driver extends uvm_driver #(mem_sequence_item);
+    2               1                    ***0***         `uvm_component_utils(mem_driver)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    virtual mem_interface mem_intf;
+    4                                                    mem_sequence_item item;
+    5                                                    
+    6                                                    function new(string name = "mem_driver", uvm_component parent = null);
+    7               1                          1             super.new(name, parent);
+    8                                                    endfunction
+    9                                                
+    10                                                   function void build_phase(uvm_phase phase);
+    11              1                          1             super.build_phase(phase);
+    12              1                          1             item = mem_sequence_item::type_id::create("item", this);
+    13                                                       assert(uvm_config_db#(virtual mem_interface)::get(this, "", "vif", mem_intf))
+    14                                                       else
+    15                                                           `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_agent class")
+    16                                                   endfunction
+    17                                               
+    18                                                   function void connect_phase(uvm_phase phase);
+    19              1                          1             super.connect_phase(phase);
+    20                                                   endfunction
+    21                                               
+    22                                                   task run_phase(uvm_phase phase);
+    23              1                          1             super.run_phase(phase);
+    24              1                          1             forever begin
+    25              1                       2033                 seq_item_port.get_next_item(item); // Get the next item from the sequencer
+    26              1                       2032                 @(posedge mem_intf.clk)
+    27              1                       2032                 mem_intf.en <= item.en;
+    28              1                       2032                 mem_intf.address <= item.address;
+    29              1                       2032                 mem_intf.data_in <= item.data_in;
+    30              1                       2032                 seq_item_port.item_done();
+    31                                                       end
+    32                                                   endtask
+    33                                               endclass
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         2         0         2       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file driver.sv --
+
+------------------------------------IF Branch------------------------------------
+    15                                   ***0***     Count coming in to IF
+    15              1                    ***0***                 `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_agent class")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File driver.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: env.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           13        10         3      76.9
+
+================================Statement Details================================
+
+Statement Coverage for file env.sv --
+
+    1                                                class mem_environment extends uvm_env;
+    2               1                    ***0***         `uvm_component_utils(mem_environment) // register mem_agent class with the UVM factory
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    virtual mem_interface mem_intf;
+    4                                                    mem_agent mem_agnt;
+    5                                                    mem_scoreboard mem_scb;
+    6                                                    mem_subscriber mem_sub; 
+    7                                                
+    8                                                    function new(string name = "mem_env", uvm_component parent = null);
+    9               1                          1             super.new(name, parent);
+    10                                                   endfunction
+    11                                               
+    12                                               // During the build phase, create instances of mem_agent, mem_subscriber and mem_scoreboard classes using the UVM factory's create method
+    13                                                   function void build_phase(uvm_phase phase);
+    14              1                          1             super.build_phase(phase);
+    15              1                          1             mem_agnt = mem_agent::type_id::create("mem_agnt", this);
+    16              1                          1             mem_scb = mem_scoreboard::type_id::create("mem_scb", this);
+    17              1                          1             mem_sub = mem_subscriber::type_id::create("mem_sub", this);
+    18                                                       
+    19                                                       // get the virtual interface instance from the configuration database 
+    20                                                       assert(uvm_config_db#(virtual mem_interface)::get(this, "", "vif", mem_intf))
+    21                                                       else
+    22                                                           `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_test class")
+    23                                                       // set the virtual interface instance in the configuration database so it can be extracted by the mem_agent class later 
+    24              1                          1             uvm_config_db#(virtual mem_interface)::set(this, "mem_agnt", "vif", mem_intf);
+    25                                                   endfunction
+    26                                               
+    27                                                   // Typically, the connect phase is used to connect the TLM ports of the components
+    28                                                   function void connect_phase (uvm_phase phase);
+    29              1                          1             super.connect_phase(phase);
+    30              1                          1             mem_agnt.mem_mon.mon_port.connect(mem_scb.scb_port); // connect the analysis port of the monitor to the analysis port of the scoreboard
+    31              1                          1             mem_agnt.mem_mon.mon_port.connect(mem_sub.analysis_export); // connect the analysis port of the monitor to the analysis port of the subscriber
+    32                                                   endfunction
+    33                                               
+    34                                                   // The run phase is where the testbench is stimulated with sequences
+    35                                                   // This is where the actual verification process starts
+    36                                                   task run_phase(uvm_phase phase);
+    37              1                          1             super.run_phase(phase);
+    38                                                   endtask
+    39                                               endclass : mem_environment
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         2         0         2       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file env.sv --
+
+------------------------------------IF Branch------------------------------------
+    22                                   ***0***     Count coming in to IF
+    22              1                    ***0***                 `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the mem_test class")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File env.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: interface.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                            1         1         0     100.0
+
+================================Statement Details================================
+
+Statement Coverage for file interface.sv --
+
+    1                                                interface mem_interface #(parameter ADDR_WIDTH = 4, parameter DATA_WIDTH = 32) (input bit clk, input logic reset_n);
+    2                                                	logic en;
+    3                                                	logic [DATA_WIDTH-1:0]data_in;
+    4                                                    logic [ADDR_WIDTH-1:0]address;
+    5                                                	logic [DATA_WIDTH-1:0]data_out;
+    6                                                	logic valid_out;
+    7                                                
+    8                                                	modport mp1
+    9                                                	(
+    10                                               		input data_in, address, clk, en, reset_n,
+    11                                               		output data_out, valid_out
+    12                                               	);
+    13                                               
+    14                                                   clocking CB @(posedge clk);
+    15              1                          1             input data_out, valid_out;
+    16                                                       output data_in, address, en;
+    17                                                   endclocking
+    18                                               	
+    19                                               endinterface: mem_interface
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         0         0         0     100.0
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                    144       143         1      99.3
+
+================================Toggle Details================================
+
+Toggle Coverage for File interface.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+          1                                reset_n           0           1       50.00 
+
+Total Node Count     =         72 
+Toggled Node Count   =         71 
+Untoggled Node Count =          1 
+
+Toggle Coverage      =       99.3% (143 of 144 bins)
+
+=================================================================================
+=== File: memory.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                            8         8         0     100.0
+
+================================Statement Details================================
+
+Statement Coverage for file memory.sv --
+
+    1                                                module memory #(parameter ADDR_WIDTH = 4, parameter DATA_WIDTH = 32) (mem_interface.mp1 X);
+    2                                                // this strongly defines any parameter to the memory unit as a modport of type mp1
+    3                                                    logic [DATA_WIDTH - 1 : 0] memory [0 : 2**ADDR_WIDTH - 1];    
+    4               1                       2037         always_ff @(posedge X.clk, negedge X.reset_n)
+    5                                                    begin
+    6                                                        if (~X.reset_n)                             // active low reset
+    7                                                        begin
+    8                                                            foreach (memory[i])
+    9               1                         32                     memory[i] <= '0;   
+    10              1                          2                 X.data_out <= '0;
+    11              1                          2                 X.valid_out <= 1'b0; 
+    12                                                       end
+    13                                                       else if (X.en)                              // @ en = 1, write to memory
+    14                                                           begin
+    15              1                       1023                     memory[X.address] <= X.data_in;
+    16              1                       1023                     X.valid_out <= 1'b0;                
+    17                                                           end
+    18                                                       else                                        // @ en = 0, read from memory
+    19                                                           begin
+    20              1                       1011                     X.data_out <= memory[X.address];
+    21              1                       1011                     X.valid_out <= (X.address >= 0 && X.address < (1 << ADDR_WIDTH)) ? 1'b1 : 1'b0;
+    22                                                           end
+    23                                                   end
+    24                                               
+    25                                               endmodule : memory
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         5         4         1      80.0
+
+================================Branch Details================================
+
+Branch Coverage for file memory.sv --
+
+------------------------------------IF Branch------------------------------------
+    6                                       2036     Count coming in to IF
+    6               1                          2             if (~X.reset_n)                             // active low reset
+    13              1                       1023             else if (X.en)                              // @ en = 1, write to memory
+    18              1                       1011             else                                        // @ en = 0, read from memory
+Branch totals: 3 hits of 3 branches = 100.0%
+
+------------------------------------IF Branch------------------------------------
+    21                                      1008     Count coming in to IF
+    21              1                       1008                     X.valid_out <= (X.address >= 0 && X.address < (1 << ADDR_WIDTH)) ? 1'b1 : 1'b0;
+    21              2                    ***0***                     X.valid_out <= (X.address >= 0 && X.address < (1 << ADDR_WIDTH)) ? 1'b1 : 1'b0;
+Branch totals: 1 hit of 2 branches = 50.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              2         0         2       0.0
+
+================================Condition Details================================
+
+Condition Coverage for file memory.sv --
+
+----------------Focused Condition View-------------------
+Line       21 Item    1  ((X.address >= 0) && (X.address < (1 << ADDR_WIDTH)))
+Condition totals: 0 of 2 input terms covered = 0.0%
+
+                       Input Term   Covered  Reason for no coverage   Hint
+                      -----------  --------  -----------------------  --------------
+                 (X.address >= 0)         N  '_0' not hit             Hit '_0'
+  (X.address < (1 << ADDR_WIDTH))         N  '_0' not hit             Hit '_0'
+
+     Rows:       Hits  FEC Target                         Non-masking condition(s)      
+ ---------  ---------  --------------------               -------------------------     
+  Row   1:    ***0***  (X.address >= 0)_0                 -                             
+  Row   2:          1  (X.address >= 0)_1                 (X.address < (1 << ADDR_WIDTH))
+  Row   3:    ***0***  (X.address < (1 << ADDR_WIDTH))_0  (X.address >= 0)              
+  Row   4:          1  (X.address < (1 << ADDR_WIDTH))_1  (X.address >= 0)              
+
+
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File memory.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: monitor.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           17        14         3      82.3
+
+================================Statement Details================================
+
+Statement Coverage for file monitor.sv --
+
+    1                                                class mem_monitor extends uvm_monitor;
+    2               1                    ***0***         `uvm_component_utils(mem_monitor)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    virtual mem_interface mem_intf;
+    4                                                    mem_sequence_item item;
+    5                                                    uvm_analysis_port#(mem_sequence_item) mon_port;
+    6                                                
+    7                                                    function new(string name = "mem_monitor", uvm_component parent = null);
+    8               1                          1             super.new(name, parent);
+    9                                                    endfunction
+    10                                                   
+    11                                                   function void build_phase(uvm_phase phase);
+    12              1                          1             super.build_phase(phase);
+    13              1                          1             item = mem_sequence_item::type_id::create("item");
+    14              1                          1             mon_port = new("mon_port", this);
+    15                                                       assert(uvm_config_db#(virtual mem_interface)::get(this, "", "vif", mem_intf))
+    16                                                       else
+    17                                                           `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the my_agent class")
+    18                                                   endfunction
+    19                                               
+    20                                                   function void connect_phase(uvm_phase phase);
+    21              1                          1             super.connect_phase(phase);
+    22                                                   endfunction
+    23                                               
+    24                                                   task run_phase(uvm_phase phase);
+    25              1                          1             super.run_phase(phase);
+    26              1                          1             wait(mem_intf.reset_n == 1); // Wait for the reset to be de-asserted
+    27              1                          1             forever
+    28                                                           begin
+    29              1                       1020                     @(mem_intf.valid_out)
+    30              1                       1019                     monitor_transaction();
+    31                                                           end
+    32                                                   endtask
+    33                                               
+    34                                                   task monitor_transaction();
+    35                                                       begin
+    36              1                       1019                 item.data_out = mem_intf.data_out;
+    37              1                       1019                 item.valid_out = mem_intf.valid_out;
+    38              1                       1019                 #1step  // advance the simulation time by the smallest possible time unit, Delay to allow the data to be written to the item
+    39              1                       1019                 mon_port.write(item);
+    40                                                       end
+    41                                                   endtask : monitor_transaction
+    42                                               
+    43                                               endclass : mem_monitor
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         2         0         2       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file monitor.sv --
+
+------------------------------------IF Branch------------------------------------
+    17                                   ***0***     Count coming in to IF
+    17              1                    ***0***                 `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the my_agent class")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File monitor.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: scoreboard.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           21        17         4      80.9
+
+================================Statement Details================================
+
+Statement Coverage for file scoreboard.sv --
+
+    1                                                class mem_scoreboard extends uvm_scoreboard;                                                                                
+    2               1                    ***0***         `uvm_component_utils(mem_scoreboard)                                            // Component registration with the UVM factory
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    mem_sequence_item item;
+    4                                                    uvm_analysis_imp # (mem_sequence_item, mem_scoreboard) scb_port;                // create the analysis port
+    5                                                
+    6                                                    function new(string name = "mem_scoreboard", uvm_component parent = null);
+    7               1                          1             super.new(name, parent);
+    8                                                    endfunction
+    9                                                    
+    10                                                   function void build_phase(uvm_phase phase);
+    11              1                          1             super.build_phase(phase);
+    12              1                          1             item = mem_sequence_item::type_id::create("item");
+    13              1                          1             scb_port = new("scb_port", this);                                           // initialize the analysis port using new method
+    14                                                   endfunction
+    15                                               
+    16                                                   function void connect_phase (uvm_phase phase);
+    17              1                          1             super.connect_phase(phase);
+    18                                                   endfunction
+    19                                               
+    20                                                   task run_phase(uvm_phase phase);
+    21              1                          1             super.run_phase(phase);
+    22                                                   endtask
+    23                                               
+    24                                                   function void report_phase(uvm_phase phase);
+    25              1                          1             super.report_phase(phase);
+    26              1                          1             `uvm_info("SCOREBOARD", $sformatf("Success Count: %0d, Fail Count: %0d", successCount, failCount), UVM_LOW)
+    27                                                   endfunction
+    28                                               
+    29              1                          1         logic [`MEM_DEPTH-1:0][`DATA_WIDTH-1:0] mem = 'b0;
+    30              1                          1         logic [`ADDR_WIDTH-1:0] prev_address = 'b0;
+    31                                               
+    32              1                          1         int successCount = 0;
+    33              1                          1         int failCount = 0;
+    34                                                   
+    35                                                   function void write(mem_sequence_item item);
+    36                                                       if(item.valid_out) begin
+    37                                                           if(mem[prev_address] == item.data_out) begin
+    38              1                         37                     successCount++;
+    39              1                         37                     `uvm_info("READ SUCCESS", $sformatf("at address: %0h", prev_address), UVM_LOW)
+    40                                                           end
+    41                                                           else begin
+    42              1                        472                     failCount++;
+    43              1                        472                     `uvm_info("READ FAILURE", $sformatf("at address: %0h", prev_address), UVM_LOW)
+    44                                                           end
+    45                                                       end
+    46                                                       if (item.en) begin
+    47              1                    ***0***                 mem[item.address] = item.data_in;
+    48                                                       end
+    49              1                       1019             prev_address = item.address;
+    50                                                   endfunction
+    51                                               endclass
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                        12         8         4      66.6
+
+================================Branch Details================================
+
+Branch Coverage for file scoreboard.sv --
+
+------------------------------------IF Branch------------------------------------
+    26                                         1     Count coming in to IF
+    26              1                          1             `uvm_info("SCOREBOARD", $sformatf("Success Count: %0d, Fail Count: %0d", successCount, failCount), UVM_LOW)
+                                         ***0***     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    36                                      1019     Count coming in to IF
+    36              1                        509             if(item.valid_out) begin
+                                             510     All False Count
+Branch totals: 2 hits of 2 branches = 100.0%
+
+------------------------------------IF Branch------------------------------------
+    37                                       509     Count coming in to IF
+    37              1                         37                 if(mem[prev_address] == item.data_out) begin
+    41              1                        472                 else begin
+Branch totals: 2 hits of 2 branches = 100.0%
+
+------------------------------------IF Branch------------------------------------
+    39                                        37     Count coming in to IF
+    39              1                         37                     `uvm_info("READ SUCCESS", $sformatf("at address: %0h", prev_address), UVM_LOW)
+                                         ***0***     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    43                                       472     Count coming in to IF
+    43              1                        472                     `uvm_info("READ FAILURE", $sformatf("at address: %0h", prev_address), UVM_LOW)
+                                         ***0***     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    46                                      1019     Count coming in to IF
+    46              1                    ***0***             if (item.en) begin
+                                            1019     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File scoreboard.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: sequence.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           28        16        12      57.1
+
+================================Statement Details================================
+
+Statement Coverage for file sequence.sv --
+
+    1                                                class mem_sequence extends uvm_sequence;
+    2               1                    ***0***         `uvm_object_utils(mem_sequence)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    2               4                    ***0***     
+    2               5                    ***0***     
+    2               6                          1     
+    2               7                    ***0***     
+    2               8                    ***0***     
+    2               9                    ***0***     
+    2              10                    ***0***     
+    3                                                    mem_sequence_item item;
+    4                                                
+    5                                                    function new(string name = "mem_sequence");
+    6                                                        // The following line MUST BE SET when using ModelSim
+    7                                                        // do_not_randomize = 1'b1;
+    8               1                          1             super.new(name);
+    9                                                    endfunction
+    10                                               
+    11                                                   task pre_body();
+    12              1                          1             item = mem_sequence_item::type_id::create("item");
+    13                                                   endtask : pre_body
+    14                                                   
+    15                                                   task body ();
+    16              1                          1             #(3*CLK_PERIOD)
+    17              1                          1             for (int i = 0; i < mem_depth; i++) 
+    17              2                         16     
+    18                                                       begin
+    19              1                         16                 start_item(item);
+    20                                                            if(!item.randomize() with {en == 1;})
+    21              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+    22              1                         16                  finish_item(item);
+    23                                                       end
+    24                                               
+    25              1                          1             for (int i = 0; i < mem_depth; i++) 
+    25              2                         16     
+    26                                                       begin
+    27              1                         16                 start_item(item);
+    28                                                            if(!item.randomize() with {en == 0;})
+    29              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+    30              1                         16                  finish_item(item);
+    31                                                       end
+    32                                               
+    33              1                          1            for (int i = 0; i < iter_count; i++) 
+    33              2                       2000     
+    34                                                       begin
+    35              1                       2000                 start_item(item);
+    36                                                            if(!item.randomize())
+    37              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+    38              1                       2000                  finish_item(item);
+    39                                                       end
+    40                                                   endtask
+    41                                               endclass : mem_sequence
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                        22         3        19      13.6
+
+================================Branch Details================================
+
+Branch Coverage for file sequence.sv --
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               1                    ***0***         `uvm_object_utils(mem_sequence)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               2                    ***0***         `uvm_object_utils(mem_sequence)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               3                    ***0***         `uvm_object_utils(mem_sequence)
+    2               4                    ***0***         `uvm_object_utils(mem_sequence)
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               5                    ***0***         `uvm_object_utils(mem_sequence)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               6                    ***0***         `uvm_object_utils(mem_sequence)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    20                                        16     Count coming in to IF
+    20              1                    ***0***                  if(!item.randomize() with {en == 1;})
+                                              16     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    21                                   ***0***     Count coming in to IF
+    21              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    28                                        16     Count coming in to IF
+    28              1                    ***0***                  if(!item.randomize() with {en == 0;})
+                                              16     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    29                                   ***0***     Count coming in to IF
+    29              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    36                                      2000     Count coming in to IF
+    36              1                    ***0***                  if(!item.randomize())
+                                            2000     All False Count
+Branch totals: 1 hit of 2 branches = 50.0%
+
+------------------------------------IF Branch------------------------------------
+    37                                   ***0***     Count coming in to IF
+    37              1                    ***0***                     `uvm_fatal(get_full_name(), "Error!: randomize failed")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File sequence.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: sequence_item.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           11         2         9      18.1
+
+================================Statement Details================================
+
+Statement Coverage for file sequence_item.sv --
+
+    1                                                class mem_sequence_item extends uvm_sequence_item;
+    2               1                    ***0***         `uvm_object_utils(mem_sequence_item)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    2               4                    ***0***     
+    2               5                    ***0***     
+    2               6                       2032     
+    2               7                    ***0***     
+    2               8                    ***0***     
+    2               9                    ***0***     
+    2              10                    ***0***     
+    3                                                
+    4                                                    function new(string name = "mem_sequence_item");
+    5               1                          5             super.new(name);
+    6                                                    endfunction
+    7                                                
+    8                                                    // Define the fields of the sequence item
+    9                                                    rand logic [31:0] data_in;
+    10                                                   rand bit en;
+    11                                                   randc bit [3:0]address;
+    12                                               
+    13                                                   logic [31:0] data_out;
+    14                                                   logic valid_out;
+    15                                               
+    16                                                   constraint c_data_in {
+    17                                                       data_in dist {[1:32'hffff_ffff-1] :/ 90 , 32'hffff_ffff := 5, 32'h0 := 5};
+    18                                                   }
+    19                                               
+    20                                               endclass : mem_sequence_item
+    21                                               
+    22                                               /*
+    23                                                   bit [4]address_old;
+    24                                                   bit en_old;
+    25                                                   
+    26                                                   // No back-to-back writing or reading
+    27                                                   constraint b2b_rw                       
+    28                                                   {
+    29                                                       (en_old == 1) -> (en == 0);
+    30                                                       (en_old == 0) -> (en == 1);
+    31                                                   }
+    32                                               
+    33                                                   // No back to back address for same operation
+    34                                                   constraint b2b_address {
+    35                                                       (en == 1) -> (address_w != address_w_old);
+    36                                                       (en == 0) -> (address_r != address_r_old); 
+    37                                                   }
+    38                                               
+    39                                                   function void post_randomize();
+    40                                                       en_old = en;
+    41                                                       if(en == 1) address_w_old = address_w; 
+    42                                                       if(en == 0) address_r_old = address_r;
+    43                                                   endfunction
+    44                                               */
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                        10         0        10       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file sequence_item.sv --
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               1                    ***0***         `uvm_object_utils(mem_sequence_item)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               2                    ***0***         `uvm_object_utils(mem_sequence_item)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               3                    ***0***         `uvm_object_utils(mem_sequence_item)
+    2               4                    ***0***         `uvm_object_utils(mem_sequence_item)
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               5                    ***0***         `uvm_object_utils(mem_sequence_item)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+------------------------------------IF Branch------------------------------------
+    2                                    ***0***     Count coming in to IF
+    2               6                    ***0***         `uvm_object_utils(mem_sequence_item)
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File sequence_item.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: sequencer.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                            7         4         3      57.1
+
+================================Statement Details================================
+
+Statement Coverage for file sequencer.sv --
+
+    1                                                class mem_sequencer extends uvm_sequencer #(mem_sequence_item);
+    2               1                    ***0***         `uvm_component_utils(mem_sequencer)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                
+    4                                                    function new(string name = "mem_sequencer", uvm_component parent = null);
+    5               1                          1             super.new(name, parent);
+    6                                                    endfunction
+    7                                                
+    8                                                    function void build_phase(uvm_phase phase);
+    9               1                          1             super.build_phase(phase);
+    10                                                   endfunction
+    11                                               
+    12                                                   function void connect_phase (uvm_phase phase);
+    13              1                          1             super.connect_phase(phase);
+    14                                                   endfunction
+    15                                               
+    16                                                   task run_phase(uvm_phase phase);
+    17              1                          1             super.run_phase(phase);
+    18                                                   endtask
+    19                                                   
+    20                                               endclass : mem_sequencer
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         0         0         0     100.0
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File sequencer.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: subscriber.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           11         8         3      72.7
+
+================================Statement Details================================
+
+Statement Coverage for file subscriber.sv --
+
+    1                                                class mem_subscriber extends uvm_subscriber #(mem_sequence_item);
+    2               1                    ***0***         `uvm_component_utils(mem_subscriber)
+    2               2                    ***0***     
+    2               3                    ***0***     
+    3                                                    mem_sequence_item item;
+    4                                                
+    5                                                    covergroup mem_coverage;
+    6                                                        option.per_instance = 1;
+    7                                                        data_out: coverpoint item.data_out {
+    8                                                            bins bin_1[] = {32'h0, 32'hffff_ffff};
+    9                                                            bins bin_2[] = (32'h0, 32'hffff_ffff => 32'h0, 32'hffff_ffff);
+    10                                                       }
+    11                                               
+    12                                                       valid_out: coverpoint item.valid_out {
+    13                                                          bins bin_1[] = (1, 0 => 0, 1);
+    14                                                          bins bin_2 = (1[*3]);
+    15                                                          bins bin_3 = (0[*3]);
+    16                                                       }
+    17                                                   endgroup
+    18                                               
+    19                                                   function void write(mem_sequence_item t);
+    20              1                       1019             item = t;
+    21              1                       1019             mem_coverage.sample();
+    22                                                   endfunction
+    23                                               
+    24                                                   function new(string name = "mem_subscriber", uvm_component parent = null);
+    25              1                          1             super.new(name, parent);
+    26              1                          1             mem_coverage = new();
+    27                                                   endfunction
+    28                                               
+    29                                                   function void build_phase(uvm_phase phase);
+    30              1                          1             super.build_phase(phase);
+    31              1                          1             item = mem_sequence_item::type_id::create("item");
+    32                                                   endfunction
+    33                                               
+    34                                                   function void connect_phase (uvm_phase phase);
+    35              1                          1             super.connect_phase(phase);
+    36                                                   endfunction
+    37                                               
+    38                                                   task run_phase(uvm_phase phase);
+    39              1                          1             super.run_phase(phase);
+    40                                                   endtask
+    41                                               endclass : mem_subscriber
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         0         0         0     100.0
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File subscriber.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: test.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                           13        11         2      84.6
+
+================================Statement Details================================
+
+Statement Coverage for file test.sv --
+
+    1                                                    class mem_test extends uvm_test;
+    2               1                    ***0***         `uvm_component_utils(mem_test)
+    2               2                    ***0***     
+    2               3                          1     
+    3                                                    virtual mem_interface mem_intf;
+    4                                                    mem_environment mem_env;
+    5                                                    mem_sequence mem_seq;
+    6                                                
+    7                                                    function new(string name = "mem_test", uvm_component parent = null);
+    8               1                          1             super.new(name, parent);
+    9                                                    endfunction
+    10                                                   
+    11                                                   // In the build phase, lower level components are instantiated
+    12                                                   function void build_phase(uvm_phase phase);
+    13              1                          1             super.build_phase(phase);
+    14              1                          1             mem_env = mem_environment::type_id::create("mem_env", this);
+    15              1                          1             mem_seq = mem_sequence::type_id::create("mem_seq");
+    16                                                       // get the virtual interface instance from the configuration database
+    17                                                       // we first check if the virtual interface instance is set in the configuration database by the testbench module
+    18                                                       assert(uvm_config_db#(virtual mem_interface)::get(this, "", "vif", mem_intf))
+    19                                                       else
+    20                                                           `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the top module")
+    21                                               
+    22              1                          1             uvm_config_db#(virtual mem_interface)::set(this, "mem_env", "vif", mem_intf); // set the virtual interface instance in the configuration database so it can be extracted by the mem_env class later 
+    23                                                   endfunction
+    24                                               
+    25                                                   function void connect_phase (uvm_phase phase);
+    26              1                          1             super.connect_phase(phase);
+    27                                                   endfunction
+    28                                               
+    29                                                   task run_phase(uvm_phase phase);
+    30              1                          1             super.run_phase(phase);
+    31              1                          1             phase.raise_objection(this);
+    32              1                          1                 mem_seq.start(mem_env.mem_agnt.mem_seqr);
+    33              1                          1             phase.drop_objection(this);
+    34                                                   endtask
+    35                                               
+    36                                                   endclass : mem_test
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         2         0         2       0.0
+
+================================Branch Details================================
+
+Branch Coverage for file test.sv --
+
+------------------------------------IF Branch------------------------------------
+    20                                   ***0***     Count coming in to IF
+    20              1                    ***0***                 `uvm_fatal(get_full_name(), "Virtual interface not set in the configuration database by the top module")
+                                         ***0***     All False Count
+Branch totals: 0 hits of 2 branches = 0.0%
+
+
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      0         0         0     100.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File test.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+
+Total Node Count     =          0 
+Toggled Node Count   =          0 
+Untoggled Node Count =          0 
+
+Toggle Coverage      =      100.0% (0 of 0 bins)
+
+=================================================================================
+=== File: top.sv
+=================================================================================
+Statement Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Stmts                            8         8         0     100.0
+
+================================Statement Details================================
+
+Statement Coverage for file top.sv --
+
+    1                                                module top;
+    2                                                    import uvm_pkg::*;
+    3                                                    import mem_package::*;
+    4                                                
+    5                                                    bit clk;
+    6                                                    logic reset_n;
+    7                                                
+    8                                                    mem_interface mem_intf(.clk(clk), .reset_n(reset_n));
+    9                                                    memory dut(mem_intf); // instead of passing each signal to the memory module, we pass the interface instance as described by the modport mp1
+    10                                                   initial begin
+    11              1                          1             uvm_config_db #(virtual mem_interface)::set(null, "uvm_test_top", "vif", mem_intf); // set the virtual interface instance in the configuration database
+    12              1                          1             run_test("mem_test"); 
+    13                                                       // Remember that there is a $finish statement in the run_test method, hence it should be the last statement in the testbench, this could also be passed from the command line
+    14                                                   end
+    15                                               
+    16                                                   // Reset generation
+    17                                                   initial begin
+    18              1                          1             clk = 0;
+    19              1                          1             reset_n = 0;
+    20              1                          1             #(CLK_PERIOD) reset_n = 1;
+    20              2                          1     
+    21                                                   end
+    22                                               
+    23                                                   // Clock generation
+    24                                                   always begin
+    25              1                       4070             #(CLK_PERIOD/2) clk = ~clk;
+    25              2                       4069     
+    26                                                   end
+    27                                               
+    28                                                   // Max Number of iterations
+    29                                                   initial begin
+    30                                                       // to be done later
+    31                                                   end
+    32                                               endmodule: top
+
+Branch Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Branches                         0         0         0     100.0
+Condition Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Condition Terms              0         0         0     100.0
+Expression Coverage:
+    Enabled Coverage            Active   Covered    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FEC Expression Terms             0         0         0     100.0
+FSM Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    FSMs                                                       100.0
+        States                       0         0         0     100.0
+        Transitions                  0         0         0     100.0
+Toggle Coverage:
+    Enabled Coverage            Active      Hits    Misses % Covered
+    ----------------            ------      ----    ------ ---------
+    Toggle Bins                      4         3         1      75.0
+
+================================Toggle Details================================
+
+Toggle Coverage for File top.sv --
+
+       Line                                   Node      1H->0L      0L->1H  "Coverage"
+--------------------------------------------------------------------------------------
+          6                                reset_n           0           1       50.00 
+
+Total Node Count     =          2 
+Toggled Node Count   =          1 
+Untoggled Node Count =          1 
+
+Toggle Coverage      =       75.0% (3 of 4 bins)
+
+COVERGROUP COVERAGE:
+-----------------------------------------------------------------------------------------------
+Covergroup                                             Metric       Goal    Status               
+                                                                                              
+-----------------------------------------------------------------------------------------------
+ TYPE /mem_package/mem_subscriber/mem_coverage          66.6%        100    Uncovered            
+    covered/total bins:                                     8         12                      
+    missing/total bins:                                     4         12                      
+    % Hit:                                              66.6%        100                      
+    Coverpoint mem_coverage::data_out                  100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint mem_coverage::valid_out                  33.3%        100    Uncovered            
+        covered/total bins:                                 2          6                      
+        missing/total bins:                                 4          6                      
+        % Hit:                                          33.3%        100                      
+ CLASS mem_subscriber
+ Covergroup instance \/mem_package::mem_subscriber::mem_coverage  
+                                                        66.6%        100    Uncovered            
+    covered/total bins:                                     8         12                      
+    missing/total bins:                                     4         12                      
+    % Hit:                                              66.6%        100                      
+    Coverpoint data_out                                100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        bin bin_1[0]                                       74          1    Covered              
+        bin bin_1[4294967295]                              29          1    Covered              
+        bin bin_2[4294967295=>4294967295]                   6          1    Covered              
+        bin bin_2[4294967295=>0]                            1          1    Covered              
+        bin bin_2[0=>4294967295]                            2          1    Covered              
+        bin bin_2[0=>0]                                    25          1    Covered              
+    Coverpoint valid_out                                33.3%        100    Uncovered            
+        covered/total bins:                                 2          6                      
+        missing/total bins:                                 4          6                      
+        % Hit:                                          33.3%        100                      
+        bin bin_1[1=>1]                                     0          1    ZERO                 
+        bin bin_1[1=>0]                                   508          1    Covered              
+        bin bin_1[0=>1]                                   509          1    Covered              
+        bin bin_1[0=>0]                                     0          1    ZERO                 
+        bin bin_2                                           0          1    ZERO                 
+        bin bin_3                                           0          1    ZERO                 
+
+TOTAL COVERGROUP COVERAGE: 66.6%  COVERGROUP TYPES: 1
+
+Total Coverage By File (code coverage only, filtered view): 49.2%
+
